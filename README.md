@@ -12,6 +12,7 @@ Environment pengembangan dikonfigurasi menggunakan GitHub Codespaces agar proyek
 - Membangun fondasi awal menuju penerapan pipeline Continual Learning/Continuous Training
 
 ## Struktur Direktori
+```
 MLOps-PrediksiDebitSungai/
 ├── .devcontainer/
 │ └── devcontainer.json
@@ -28,6 +29,7 @@ MLOps-PrediksiDebitSungai/
 ├── LICENSE
 ├── requirements.txt
 └── README.md
+```
 
 ## Dependencies
 Library utama yang digunakan tercantum di `requirements.txt`, meliputi:
