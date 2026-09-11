@@ -1,0 +1,15 @@
+{
+  "name": "MLOps - Prediksi Debit Sungai",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-toolsai.jupyter",
+        "mechatroner.rainbow-csv"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r requirements.txt"
+}
