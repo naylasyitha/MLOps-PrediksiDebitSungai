@@ -84,7 +84,7 @@ def fetch_json(url, params):
             response = requests.get(
                 url, params=params, timeout=REQUEST_TIMEOUT_SECONDS
             )
-        except (requests.ConnectionError, requests.Timeout) as error:
+        except requests.RequestException as error:
             last_error = error
         else:
             if response.status_code == 200:
@@ -226,7 +226,8 @@ def main():
     )
     args = parse_args()
     run_timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-    end_date = date.today() - timedelta(days=ARCHIVE_DELAY_DAYS)
+    today = datetime.now(timezone.utc).date()
+    end_date = today - timedelta(days=ARCHIVE_DELAY_DAYS)
 
     failed_sources = []
     for source_name in SOURCES:
