@@ -96,8 +96,6 @@ python src/ingest_data.py
 
 > **Catatan:** Data `forecast` disimpan sebagai snapshot untuk keperluan inference/forecasting di tahap berikutnya. Saat ini `forecast` **belum dipakai** di pipeline prapemrosesan.
 
-> **Catatan timezone:** Data `flood` dari Open-Meteo Flood API mengacu ke UTC, sedangkan `weather` dan `forecast` menggunakan WIB (`Asia/Jakarta`). Saat agregasi harian, potensi pergeseran tanggal di batas hari perlu diperhatikan.
-
 ### Format Data Mentah
 
 Data mentah tersimpan di `data/raw/` dengan pola nama:
