@@ -4,3 +4,5 @@ scikit-learn
 jupyter
 matplotlib
 requests
+
+dvc[s3]
