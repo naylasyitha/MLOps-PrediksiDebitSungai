@@ -6,3 +6,5 @@ matplotlib
 requests
 
 dvc[s3]
+
+mlflow
