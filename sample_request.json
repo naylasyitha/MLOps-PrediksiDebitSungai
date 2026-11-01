@@ -1,0 +1,12 @@
+{
+  "precipitation": 12.4,
+  "soil_moisture": 0.4956249999999999,
+  "river_discharge_lag1": 68.82,
+  "river_discharge_lag2": 123.45,
+  "river_discharge_lag3": 55.49,
+  "precipitation_roll3": 37.9,
+  "precipitation_roll7": 146.6,
+  "soil_moisture_roll3": 0.4986666666666666,
+  "month": 1,
+  "is_rainy_season": 1
+}
