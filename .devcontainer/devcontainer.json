@@ -1,6 +1,13 @@
+
 {
   "name": "MLOps - Prediksi Debit Sungai",
   "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:4": {
+      "moby": false
+    }
+  },
+  "forwardPorts": [5000, 8000, 9000, 9001],
   "customizations": {
     "vscode": {
       "extensions": [
