@@ -1,0 +1,5 @@
+outs:
+- md5: c7a39d76905c581a6a5ad5bd1f5537d7
+  size: 652
+  hash: md5
+  path: lk07_model_metadata.json
