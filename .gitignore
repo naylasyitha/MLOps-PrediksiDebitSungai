@@ -220,3 +220,6 @@ __marimo__/
 mlflow.db
 mlartifacts/
 mlruns/
+
+# Local service storage
+.local/
