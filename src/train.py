@@ -221,6 +221,7 @@ def run_experiment(args):
             signature=signature,
             input_example=x_train.head(3),
             serialization_format=SERIALIZATION_FORMAT,
+            registered_model_name=args.register_name,
         )
     return run.info.run_id
 
@@ -258,6 +259,12 @@ def parse_args():
     parser.add_argument("--min-samples-leaf", type=int, default=1)
     parser.add_argument("--learning-rate", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument(
+    "--register-name",
+    type=str,
+    default=None,
+    help="Nama model untuk MLflow Model Registry.",
+)
     return parser.parse_args()
 
 
