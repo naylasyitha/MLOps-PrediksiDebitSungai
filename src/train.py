@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 import time
+import os
 from pathlib import Path
 
 import mlflow
@@ -265,6 +266,12 @@ def parse_args():
     default=None,
     help="Nama model untuk MLflow Model Registry.",
 )
+    parser.add_argument(
+    "--run-id-file",
+    type=Path,
+    default=None,
+    help="Lokasi output Run ID untuk pipeline otomatis.",
+)
     return parser.parse_args()
 
 
@@ -276,8 +283,24 @@ def main():
     )
     args = apply_model_defaults(parse_args())
     logging.info("Tracking URI: %s", mlflow.get_tracking_uri())
+    
     run_id = run_experiment(args)
     logging.info("Run selesai: %s", run_id)
+
+    if args.run_id_file is not None:
+        args.run_id_file.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        args.run_id_file.write_text(
+            run_id + "\n",
+            encoding="utf-8",
+        )
+        logging.info(
+            "Run ID tersimpan: %s",
+            args.run_id_file,
+        )
+
     return 0
 
 
