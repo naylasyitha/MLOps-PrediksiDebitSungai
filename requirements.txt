@@ -9,3 +9,6 @@ dvc[s3]
 
 mlflow
 pytest
+
+psycopg[binary]
+boto3
