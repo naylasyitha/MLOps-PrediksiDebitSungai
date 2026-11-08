@@ -3,3 +3,8 @@
 ['remote "minio"']
     url = s3://dvc-data/dvcstore
     endpointurl = http://localhost:9000
+['remote "supabase"']
+    url = s3://mlops-dvc-storage/dvcstore
+    endpointurl = https://ypdynygvtsncnvvifblz.storage.supabase.co/storage/v1/s3
+    region = ap-northeast-1
+    use_ssl = true

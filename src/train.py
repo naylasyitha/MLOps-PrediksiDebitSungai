@@ -4,6 +4,7 @@ import re
 import subprocess
 import sys
 import time
+import os
 from pathlib import Path
 
 import mlflow
@@ -14,6 +15,9 @@ from mlflow.models import infer_signature
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+
+# LK08: Simulasi perubahan kode untuk memverifikasi
+# pemicu otomatis testing, retraining, evaluation, dan staging registry.
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
@@ -177,8 +181,32 @@ def run_experiment(args):
     x_train, y_train = splits["train"]
     threshold = float(y_train.quantile(HIGH_FLOW_QUANTILE))
 
-    mlflow.set_experiment(args.experiment_name)
+    
+    artifact_root = os.environ.get("MLFLOW_ARTIFACT_ROOT")
+
+    if artifact_root:
+        experiment = mlflow.get_experiment_by_name(
+            args.experiment_name
+        )
+
+        if experiment is None:
+            experiment_id = mlflow.create_experiment(
+                name=args.experiment_name,
+                artifact_location=artifact_root,
+            )
+        else:
+            experiment_id = experiment.experiment_id
+            if experiment.artifact_location.rstrip("/") != artifact_root.rstrip("/"):
+                raise ValueError(
+                    "Lokasi artifact eksperimen tidak sesuai konfigurasi."
+                )
+
+        mlflow.set_experiment(experiment_id=experiment_id)
+    else:
+        mlflow.set_experiment(args.experiment_name)
+
     with mlflow.start_run(run_name=args.run_name or args.model) as run:
+
         params = {"model": args.model, "seed": args.seed}
         for name in HYPERPARAMETERS[args.model]:
             params[name] = getattr(args, name)
@@ -265,6 +293,12 @@ def parse_args():
     default=None,
     help="Nama model untuk MLflow Model Registry.",
 )
+    parser.add_argument(
+    "--run-id-file",
+    type=Path,
+    default=None,
+    help="Lokasi output Run ID untuk pipeline otomatis.",
+)
     return parser.parse_args()
 
 
@@ -275,9 +309,25 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
     args = apply_model_defaults(parse_args())
-    logging.info("Tracking URI: %s", mlflow.get_tracking_uri())
+    logging.info("MLflow tracking backend sudah dikonfigurasi.")
+    
     run_id = run_experiment(args)
     logging.info("Run selesai: %s", run_id)
+
+    if args.run_id_file is not None:
+        args.run_id_file.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+        args.run_id_file.write_text(
+            run_id + "\n",
+            encoding="utf-8",
+        )
+        logging.info(
+            "Run ID tersimpan: %s",
+            args.run_id_file,
+        )
+
     return 0
 
 
