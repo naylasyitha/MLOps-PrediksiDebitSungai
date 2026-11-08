@@ -33,7 +33,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
 
-            - name: Run Automated Tests
+      - name: Run Automated Tests
         run: |
           python -m pytest -v --junitxml=pytest-results.xml
 
