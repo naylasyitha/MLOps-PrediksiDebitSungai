@@ -129,6 +129,23 @@ jobs:
             --config docs/lk08_evaluation_config.json \
             --output evaluation-result.json
 
+      
+      - name: Run Auto Registry Staging
+        run: |
+          python -m src.register_model \
+            --evaluation-file evaluation-result.json \
+            --config docs/lk08_evaluation_config.json \
+            --output registration-result.json
+
+      - name: Upload Registration Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lk08-registration-results
+          path: registration-result.json
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Upload Evaluation Results
         if: always()
         uses: actions/upload-artifact@v4
@@ -138,7 +155,6 @@ jobs:
           if-no-files-found: warn
           retention-days: 30
 
-      
       - name: Upload Training Artifacts
         if: always()
         uses: actions/upload-artifact@v4
