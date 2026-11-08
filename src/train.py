@@ -16,6 +16,9 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 
+# LK08: Simulasi perubahan kode untuk memverifikasi
+# pemicu otomatis testing, retraining, evaluation, dan staging registry.
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_DIR = ROOT_DIR / "data" / "processed"
 DVC_POINTER = ROOT_DIR / "data" / "processed.dvc"
