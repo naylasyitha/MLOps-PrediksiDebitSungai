@@ -45,7 +45,7 @@ jobs:
           path: pytest-results.xml
           if-no-files-found: warn
           retention-days: 30  
-          
+
   automated-training:
     name: Automated Training (DVC + MLflow)
     needs: automated-testing
@@ -92,7 +92,7 @@ jobs:
         run: |
           dvc pull -r supabase data/processed.dvc
           ls -lh data/processed/
-
+      
       - name: Run Automated Model Training
         run: |
           python src/train.py \
@@ -101,15 +101,37 @@ jobs:
             --max-depth 4 \
             --min-samples-leaf 1 \
             --seed 42 \
-            --run-name lk08-ci-retraining
+            --run-name lk08-ci-retraining \
+            --run-id-file training-run-id.txt
+
+      - name: Run Automated Model Evaluation
+        run: |
+          RUN_ID=$(cat training-run-id.txt)
+          test -n "$RUN_ID"
+
+          python src/evaluate_model.py \
+            --run-id "$RUN_ID" \
+            --tracking-uri "$MLFLOW_TRACKING_URI" \
+            --config docs/lk08_evaluation_config.json \
+            --output evaluation-result.json
+
+      - name: Upload Evaluation Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lk08-evaluation-results
+          path: evaluation-result.json
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Upload Training Artifacts
-        if: success()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: lk08-training-artifacts
           path: |
             mlflow-ci.db
             mlruns/
+            training-run-id.txt
           if-no-files-found: warn
           retention-days: 30

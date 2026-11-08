@@ -226,3 +226,7 @@ mlruns/
 
 # Pytest report artifacts
 pytest-results.xml
+
+# LK08 CI evaluation artifacts
+training-run-id.txt
+evaluation-result.json
