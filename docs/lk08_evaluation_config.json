@@ -1,0 +1,11 @@
+
+{
+  "model_name": "debit-sungai-regressor",
+  "champion_version": "2",
+  "champion_run_id": "b84babeb33084fbf82ad7f1f7a6d781a",
+  "metric_name": "val_rmse",
+  "max_val_rmse": 14.0008310682955,
+  "dataset_file": "dataset_20261101_151050.csv",
+  "dvc_processed_md5": "e87c4864cd62451d1269902b73620419.dir",
+  "registration_alias": "staging"
+}
