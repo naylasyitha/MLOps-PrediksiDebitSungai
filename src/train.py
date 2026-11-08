@@ -178,8 +178,32 @@ def run_experiment(args):
     x_train, y_train = splits["train"]
     threshold = float(y_train.quantile(HIGH_FLOW_QUANTILE))
 
-    mlflow.set_experiment(args.experiment_name)
+    
+    artifact_root = os.environ.get("MLFLOW_ARTIFACT_ROOT")
+
+    if artifact_root:
+        experiment = mlflow.get_experiment_by_name(
+            args.experiment_name
+        )
+
+        if experiment is None:
+            experiment_id = mlflow.create_experiment(
+                name=args.experiment_name,
+                artifact_location=artifact_root,
+            )
+        else:
+            experiment_id = experiment.experiment_id
+            if experiment.artifact_location.rstrip("/") != artifact_root.rstrip("/"):
+                raise ValueError(
+                    "Lokasi artifact eksperimen tidak sesuai konfigurasi."
+                )
+
+        mlflow.set_experiment(experiment_id=experiment_id)
+    else:
+        mlflow.set_experiment(args.experiment_name)
+
     with mlflow.start_run(run_name=args.run_name or args.model) as run:
+
         params = {"model": args.model, "seed": args.seed}
         for name in HYPERPARAMETERS[args.model]:
             params[name] = getattr(args, name)
@@ -282,7 +306,7 @@ def main():
         format="%(asctime)s [%(levelname)s] %(message)s",
     )
     args = apply_model_defaults(parse_args())
-    logging.info("Tracking URI: %s", mlflow.get_tracking_uri())
+    logging.info("MLflow tracking backend sudah dikonfigurasi.")
     
     run_id = run_experiment(args)
     logging.info("Run selesai: %s", run_id)
