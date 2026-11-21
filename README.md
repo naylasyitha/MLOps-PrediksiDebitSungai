@@ -290,3 +290,122 @@ Di **GitHub Codespaces**, simulasi periodik dilakukan dengan menjalankan ulang k
 ```bash
 python src/ingest_data.py && python src/preprocess.py
 ```
+
+
+---
+
+## Orkestrasi Layanan dengan Docker Compose
+
+Pada LK09, sistem prediksi debit sungai dijalankan menggunakan Docker Compose untuk mengorkestrasi dua layanan dalam satu lingkungan.
+
+### Arsitektur Layanan
+
+| Layanan | Fungsi | Port |
+|---|---|---|
+| `api-service` | FastAPI untuk inferensi model Champion | 8000 |
+| `mlflow-server` | MLflow Tracking Server untuk pengelolaan metadata eksperimen | 5000 |
+
+Kedua layanan berkomunikasi melalui custom Docker bridge network `mlops-network`.
+
+Data MLflow disimpan dalam Docker named volume `mlflow-data`, sehingga tetap tersedia meskipun container dihentikan dan dibuat ulang.
+
+### Prasyarat
+
+- Docker Engine
+- Docker Compose
+- Repository proyek yang sudah di-clone
+- Model Champion tersedia di `models/champion/`
+
+### Menjalankan Sistem
+
+Pastikan terminal berada di direktori utama proyek.
+
+Jalankan satu perintah berikut:
+
+```bash
+docker compose up -d --build
+```
+
+Docker Compose akan:
+
+1. Membangun image FastAPI dan MLflow.
+2. Membuat custom bridge network.
+3. Membuat volume persisten MLflow.
+4. Menjalankan MLflow Server.
+5. Menunggu MLflow Server berstatus healthy.
+6. Menjalankan FastAPI.
+
+### Memeriksa Status Layanan
+
+```bash
+docker compose ps
+```
+
+Pastikan kedua container berstatus `Up (healthy)`.
+
+### Mengakses Layanan
+
+| Layanan | URL |
+|---|---|
+| FastAPI Docs | http://127.0.0.1:8000/docs |
+| FastAPI Health | http://127.0.0.1:8000/health |
+| Komunikasi MLflow | http://127.0.0.1:8000/mlflow/status |
+| MLflow Server | http://127.0.0.1:5000 |
+
+Pada GitHub Codespaces, akses melalui terminal atau fitur port forwarding.
+
+### Menguji Komunikasi Antarcontainer
+
+Jalankan:
+
+```bash
+curl -sS http://127.0.0.1:8000/mlflow/status | python -m json.tool
+```
+
+Jika berhasil, API menampilkan `status: connected`.
+
+Pengujian langsung dari dalam container API:
+
+```bash
+docker compose exec api-service python -c "import urllib.request; response = urllib.request.urlopen('http://mlflow-server:5000/health', timeout=10); print('HTTP Status:', response.status)"
+```
+
+Output yang diharapkan adalah `HTTP Status: 200`.
+
+### Penyimpanan Persisten
+
+MLflow menggunakan named volume `mlflow-data` untuk menyimpan database SQLite dan direktori artifact.
+
+Untuk menghentikan layanan tanpa menghapus data:
+
+```bash
+docker compose down
+```
+
+Untuk menjalankan kembali:
+
+```bash
+docker compose up -d
+```
+
+Data tetap tersedia karena volume tidak dihapus.
+
+**Perhatian:** Jangan menggunakan `docker compose down -v` jika ingin mempertahankan data.
+
+### Melihat Log
+
+```bash
+docker compose logs --tail=50
+```
+
+### Menghentikan Sistem
+
+```bash
+docker compose down
+```
+
+### Catatan
+
+MLflow Server pada LK09 digunakan untuk demonstrasi komunikasi dan orkestrasi container. Model Champion untuk inferensi tetap dimuat dari `models/champion/` hasil LK07.
+
+Server MLflow lokal ini terpisah dari backend MLflow Supabase yang digunakan pada LK08.
