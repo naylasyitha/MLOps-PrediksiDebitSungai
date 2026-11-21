@@ -1,14 +1,20 @@
-
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 import mlflow.pyfunc
 import pandas as pd
+from mlflow.tracking import MlflowClient
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 
 ROOT = Path(__file__).resolve().parent
 MODEL_DIR = ROOT / "models" / "champion"
+
+MLFLOW_TRACKING_URI = os.getenv(
+    "MLFLOW_TRACKING_URI",
+    "http://mlflow-server:5000",
+)
 
 FEATURE_COLUMNS = [
     "precipitation",
@@ -78,6 +84,37 @@ def health():
         "status": "healthy" if model is not None else "unavailable",
         "model_loaded": model is not None,
     }
+
+
+@app.get("/mlflow/status")
+def mlflow_status():
+    """
+    LK09: Menguji komunikasi antarcontainer
+    melalui MLflow Tracking Server.
+    """
+
+    try:
+        client = MlflowClient(
+            tracking_uri=MLFLOW_TRACKING_URI
+        )
+
+        experiments = client.search_experiments(
+            max_results=100
+        )
+
+        return {
+            "status": "connected",
+            "service": "mlflow-server",
+            "tracking_uri": MLFLOW_TRACKING_URI,
+            "experiment_count": len(experiments),
+            "message": "FastAPI berhasil terhubung ke MLflow Server",
+        }
+
+    except Exception as exc:
+        raise HTTPException(
+            status_code=503,
+            detail="MLflow Tracking Server tidak dapat dihubungi",
+        ) from exc
 
 
 @app.post("/predict")
