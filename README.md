@@ -294,118 +294,72 @@ python src/ingest_data.py && python src/preprocess.py
 
 ---
 
-## Orkestrasi Layanan dengan Docker Compose
+## Deployment dan Model Serving
 
-Pada LK09, sistem prediksi debit sungai dijalankan menggunakan Docker Compose untuk mengorkestrasi dua layanan dalam satu lingkungan.
+Sistem dijalankan menggunakan Docker Compose untuk mengorkestrasi layanan API, MLflow Tracking Server, dan beberapa instance MLflow Model Serving dalam satu jaringan internal.
 
-### Arsitektur Layanan
+### Komponen Layanan
 
 | Layanan | Fungsi | Port |
 |---|---|---|
-| `api-service` | FastAPI untuk inferensi model Champion | 8000 |
-| `mlflow-server` | MLflow Tracking Server untuk pengelolaan metadata eksperimen | 5000 |
+| `api-service` | Menyediakan API untuk mengakses fungsionalitas aplikasi | 8000 |
+| `mlflow-server` | Mengelola eksperimen, pencatatan metrik, dan model | 5000 |
+| `model-service` | Menjalankan model machine learning untuk menghasilkan prediksi | 8080 (internal) |
 
-Kedua layanan berkomunikasi melalui custom Docker bridge network `mlops-network`.
+Data eksperimen dan artefak MLflow disimpan menggunakan Docker volume agar tetap tersedia ketika container dihentikan atau dijalankan kembali.
 
-Data MLflow disimpan dalam Docker named volume `mlflow-data`, sehingga tetap tersedia meskipun container dihentikan dan dibuat ulang.
+### Model yang Digunakan
 
-### Prasyarat
+Model yang digunakan untuk proses serving adalah model terdaftar pada MLflow Model Registry dengan informasi berikut:
 
-- Docker Engine
-- Docker Compose
-- Repository proyek yang sudah di-clone
-- Model Champion tersedia di `models/champion/`
+- Nama model: `debit-sungai-regressor`
+- Versi model: `2`
+
+Image Docker untuk model dibuat menggunakan fitur MLflow Model Serving.
 
 ### Menjalankan Sistem
 
-Pastikan terminal berada di direktori utama proyek.
-
-Jalankan satu perintah berikut:
+Jalankan seluruh layanan menggunakan perintah:
 
 ```bash
-docker compose up -d --build
+docker compose up -d --scale model-service=3
 ```
 
-Docker Compose akan:
+Perintah tersebut menjalankan layanan API, MLflow Server, dan tiga instance Model Serving.
 
-1. Membangun image FastAPI dan MLflow.
-2. Membuat custom bridge network.
-3. Membuat volume persisten MLflow.
-4. Menjalankan MLflow Server.
-5. Menunggu MLflow Server berstatus healthy.
-6. Menjalankan FastAPI.
-
-### Memeriksa Status Layanan
+Untuk memeriksa status container:
 
 ```bash
 docker compose ps
 ```
 
-Pastikan kedua container berstatus `Up (healthy)`.
-
-### Mengakses Layanan
-
-| Layanan | URL |
-|---|---|
-| FastAPI Docs | http://127.0.0.1:8000/docs |
-| FastAPI Health | http://127.0.0.1:8000/health |
-| Komunikasi MLflow | http://127.0.0.1:8000/mlflow/status |
-| MLflow Server | http://127.0.0.1:5000 |
-
-Pada GitHub Codespaces, akses melalui terminal atau fitur port forwarding.
-
-### Menguji Komunikasi Antarcontainer
-
-Jalankan:
-
-```bash
-curl -sS http://127.0.0.1:8000/mlflow/status | python -m json.tool
-```
-
-Jika berhasil, API menampilkan `status: connected`.
-
-Pengujian langsung dari dalam container API:
-
-```bash
-docker compose exec api-service python -c "import urllib.request; response = urllib.request.urlopen('http://mlflow-server:5000/health', timeout=10); print('HTTP Status:', response.status)"
-```
-
-Output yang diharapkan adalah `HTTP Status: 200`.
-
-### Penyimpanan Persisten
-
-MLflow menggunakan named volume `mlflow-data` untuk menyimpan database SQLite dan direktori artifact.
-
-Untuk menghentikan layanan tanpa menghapus data:
-
-```bash
-docker compose down
-```
-
-Untuk menjalankan kembali:
-
-```bash
-docker compose up -d
-```
-
-Data tetap tersedia karena volume tidak dihapus.
-
-**Perhatian:** Jangan menggunakan `docker compose down -v` jika ingin mempertahankan data.
-
-### Melihat Log
+Untuk melihat log layanan:
 
 ```bash
 docker compose logs --tail=50
 ```
 
-### Menghentikan Sistem
+### Pengujian Model Serving
+
+MLflow Model Serving menyediakan dua endpoint utama:
+
+- `GET /ping` untuk memeriksa ketersediaan layanan.
+- `POST /invocations` untuk mengirimkan data dan memperoleh hasil prediksi.
+
+Setiap instance Model Serving dapat diuji secara langsung melalui container untuk memastikan layanan berjalan dan mampu menghasilkan prediksi.
+
+### Pengelolaan Layanan
+
+Menghentikan seluruh layanan:
 
 ```bash
 docker compose down
 ```
 
-### Catatan
+Menjalankan kembali layanan:
 
-MLflow Server pada LK09 digunakan untuk demonstrasi komunikasi dan orkestrasi container. Model Champion untuk inferensi tetap dimuat dari `models/champion/` hasil LK07.
+```bash
+docker compose up -d --scale model-service=3
+```
 
-Server MLflow lokal ini terpisah dari backend MLflow Supabase yang digunakan pada LK08.
+Data yang tersimpan pada Docker volume tetap dipertahankan selama volume tidak dihapus secara manual.

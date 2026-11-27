@@ -78,6 +78,21 @@ services:
 
     restart: unless-stopped
 
+
+  model-service:
+    image: debit-sungai-mlflow-serving:latest
+
+    expose:
+      - "8080"
+
+    deploy:
+      replicas: 3
+
+    networks:
+      - mlops-network
+
+    restart: unless-stopped
+
 networks:
   mlops-network:
     driver: bridge
